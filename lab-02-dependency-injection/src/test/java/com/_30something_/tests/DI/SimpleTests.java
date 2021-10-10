@@ -3,7 +3,6 @@ package com._30something_.tests.DI;
 import com._30something.DI.DI;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import javax.inject.Inject;
 
 class Car {
@@ -27,7 +26,7 @@ class Plane {
     public final int weight;
 
     @Inject
-    public Plane(Car car) {
+    public Plane() {
         this.weight = 42;
     }
 }
@@ -42,7 +41,7 @@ class Train {
     }
 }
 
-public class MainTests {
+public class SimpleTests {
     @Test
     public void testSimpleFirst() {
         DI myDi = new DI();
@@ -56,7 +55,11 @@ public class MainTests {
         Assertions.assertNotNull(myCar);
         Assertions.assertNotNull(myPlane);
         Assertions.assertNotNull(myTrain);
-        Assertions.assertNotNull(myCar);
         Assertions.assertEquals(myCar.start(), "Car makes beep");
+    }
+
+    @Test
+    public void testSimpleSecond() {
+
     }
 }
