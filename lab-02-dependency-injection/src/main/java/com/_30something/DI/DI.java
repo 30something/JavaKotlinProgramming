@@ -1,6 +1,7 @@
 package com._30something.DI;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -8,6 +9,7 @@ public class DI {
     private boolean registrationCompleted = false;
     private final HashMap<Class<?>, Class<?>> associatedImplementations = new HashMap<>();
     private final HashMap<Class<?>, Constructor<?>> associatedConstructors = new HashMap<>();
+    private final HashMap<Class<?>, Object> singletonsInstances = new HashMap<>();
 
     public void registerClass(Class<?> newClass) {
         try {
@@ -73,7 +75,22 @@ public class DI {
     }
 
     public void completeRegistration() {
-        registrationCompleted = true;
+        try {
+            for (Constructor<?> constructor : associatedConstructors.values()) {
+                for (Parameter parameter : constructor.getParameters()) {
+                    if (!associatedConstructors.containsKey(parameter.getType()) &&
+                            !associatedImplementations.containsKey(parameter.getType())) {
+                        throw new Exception("Arguments of injected constructor " + constructor + " aren't registered");
+                    }
+                }
+                if (!constructor.isAnnotationPresent(Inject.class)) {
+                    throw new Exception("Constructor " + constructor + " must be marked with @Inject");
+                }
+            }
+            registrationCompleted = true;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     public <T> T resolveClass(Class<T> newClass) {
@@ -88,14 +105,20 @@ public class DI {
                 Class<?> implementation = associatedImplementations.get(newClass);
                 return newClass.cast(resolveClass(implementation));
             }
+            if (singletonsInstances.containsKey(newClass)) {
+                return newClass.cast(singletonsInstances.get(newClass));
+            }
             ArrayList<Object> createdInstances = new ArrayList<>();
             Constructor<?> constructor = associatedConstructors.get(newClass);
             for (Parameter parameter : constructor.getParameters()) {
-                Class<?> argClass = parameter.getType();
-                createdInstances.add(resolveClass(argClass));
+                createdInstances.add(resolveClass(parameter.getType()));
             }
             constructor.setAccessible(true);
-            return newClass.cast(constructor.newInstance(createdInstances.toArray()));
+            T newInstance = newClass.cast(constructor.newInstance(createdInstances.toArray()));
+            if (newClass.isAnnotationPresent(Singleton.class)) {
+                singletonsInstances.put(newClass, newInstance);
+            }
+            return newInstance;
         } catch (Exception exception) {
             exception.printStackTrace();
             return null;
