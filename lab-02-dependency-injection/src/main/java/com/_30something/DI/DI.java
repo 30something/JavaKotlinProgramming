@@ -47,6 +47,9 @@ public class DI {
 
     public void registerClass(Class<?> newInterface, Class<?> newImplementation)
             throws InterfaceRegistrationException, ClassRegistrationException {
+        if (registrationCompleted) {
+            throw new AccessControlException("Registration completed for current DI");
+        }
         if (newImplementation.isInterface()) {
             throw new InterfaceRegistrationException("Attempt to register interface as implementation");
         }
@@ -66,6 +69,9 @@ public class DI {
     }
 
     public void completeRegistration() throws ClassRegistrationException {
+        if (registrationCompleted) {
+            return;
+        }
         for (Constructor<?> constructor : associatedConstructors.values()) {
             for (Parameter parameter : constructor.getParameters()) {
                 if (!associatedConstructors.containsKey(parameter.getType()) &&
