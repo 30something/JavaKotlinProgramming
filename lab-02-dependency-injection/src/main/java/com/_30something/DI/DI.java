@@ -1,6 +1,7 @@
 package com._30something.DI;
 
 import java.security.AccessControlException;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.lang.reflect.*;
@@ -37,7 +38,8 @@ public class DI {
         if (injectedConstructorsCounter > 1) {
             throw new ClassRegistrationException("Multiple injected constructors found in " + newClass);
         }
-        if (!Objects.equals(Modifier.toString(supposedConstructor.getModifiers()), "public")) {
+        if (!newClass.isAnnotationPresent(Singleton.class) &&
+                !Objects.equals(Modifier.toString(supposedConstructor.getModifiers()), "public")) {
             throw new ClassRegistrationException("Supposed constructor of " + newClass + " must be public only");
         }
         associatedConstructors.put(newClass, supposedConstructor);
@@ -54,17 +56,12 @@ public class DI {
         if (associatedImplementations.containsKey(newInterface)) {
             throw new InterfaceRegistrationException("Attempt to register new implementation for interface");
         }
-        boolean interfaceImplemented = false;
-        for (Class<?> currentInterface : Arrays.stream(newImplementation.getInterfaces()).toList()) {
-            if (currentInterface == newInterface) {
-                interfaceImplemented = true;
-                break;
-            }
-        }
-        if (!interfaceImplemented) {
+        if (!Arrays.stream(newImplementation.getInterfaces()).toList().contains(newInterface)) {
             throw new InterfaceRegistrationException("Implementation doesn't correspond to interface");
         }
-        registerClass(newImplementation);
+        if (!associatedConstructors.containsKey(newImplementation)) {
+            registerClass(newImplementation);
+        }
         associatedImplementations.put(newInterface, newImplementation);
     }
 
