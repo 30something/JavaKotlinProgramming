@@ -8,3 +8,5 @@ pluginManagement {
 }
 rootProject.name = "lab3_compose"
 
+include(":calc-gui")
+include(":lib-calc")
