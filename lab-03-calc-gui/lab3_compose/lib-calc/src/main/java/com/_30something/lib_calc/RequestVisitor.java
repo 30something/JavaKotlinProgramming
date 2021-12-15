@@ -1,17 +1,12 @@
 package com._30something.lib_calc;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.HashSet;
 
 public class RequestVisitor implements ExpressionVisitor {
 
-    Map<String, Double> map = new HashMap<>();
-    Scanner in;
+    HashSet<String> literals = new HashSet<>();
 
-    public RequestVisitor(Scanner in) {
-        this.in = in;
-    }
+    public RequestVisitor() {}
 
     @Override
     public Object visitBinaryExpression(BinaryExpression expr) {
@@ -32,24 +27,11 @@ public class RequestVisitor implements ExpressionVisitor {
 
     @Override
     public Object visitVariable(Variable expr) {
-        String varName = expr.getName();
-        if (!map.containsKey(varName)) {
-            boolean correctInput = false;
-            while (!correctInput) {
-                try {
-                    System.out.printf("Enter value for '%s': ", varName);
-                    map.put(varName, Double.parseDouble(in.nextLine()));
-                    correctInput = true;
-                } catch (Exception exc) {
-                    System.out.println("Unable to convert input string to value");
-                    System.out.println("Please input value again");
-                }
-            }
-        }
+        literals.add(expr.getName());
         return null;
     }
 
-    public Map<String, Double> getVariablesMap() {
-        return map;
+    public HashSet<String> getVariablesSet() {
+        return literals;
     }
 }
