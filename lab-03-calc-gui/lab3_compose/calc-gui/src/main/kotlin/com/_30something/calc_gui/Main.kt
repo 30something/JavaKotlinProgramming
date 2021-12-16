@@ -3,15 +3,12 @@ package com._30something.calc_gui
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -19,8 +16,6 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import com._30something.lib_calc.*
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 @Composable
 @Preview
@@ -34,8 +29,8 @@ fun app() {
     var reconstructedExprText: String by remember { mutableStateOf("") }
     var cursorPos: Int by remember { mutableStateOf(0) }
     var literalsSet: HashSet<String> by remember { mutableStateOf(HashSet()) }
-    var literalsMap: HashMap<String, Double> by remember { mutableStateOf(HashMap()) }
-    var checkerMap: HashMap<String, String> by remember { mutableStateOf(HashMap()) }
+    val literalsMap = mutableStateMapOf<String, Double>()
+    val checkerMap = mutableStateMapOf<String, TextFieldValue>()
 
     CompositionLocalProvider(
         LocalDensity provides Density(
@@ -142,6 +137,7 @@ fun app() {
                                 inputError = false
                                 literalsSet.clear()
                                 checkerMap.clear()
+                                literalsMap.clear()
                             }
                         ) {
                             Text("C")
@@ -162,33 +158,25 @@ fun app() {
                                     expr.accept(requestVisitor)
                                     literalsSet = requestVisitor.variablesSet
                                     if (checkerMap.size < literalsSet.size) {
-                                        println("lllllooooolllll")
-                                        inputError = true
-                                        inputErrorText = "Please, input all variables (use scroll if needed)"
-                                    } else {
-                                        println("hahaha")
-                                        literalsMap.clear()
-                                        for (element in checkerMap) {
-                                            try {
-                                                literalsMap[element.key] = element.value.toDouble()
-                                            } catch (exc: Exception) {
-                                                inputError = true
-                                                inputErrorText = "Unable to convert input string " + element.value +
-                                                        " to value for variable " + element.key +
-                                                        ". Please input value again"
-                                                throw Exception("ahhahaha")
-                                            }
-                                        }
-                                        println(inputError)
-                                        if (!inputError) {
-                                            val computeVisitor = ComputeExpressionVisitor(literalsMap)
-                                            val result: Double = expr.accept(computeVisitor) as Double
-                                            resultText = result.toString()
+                                        throw Exception("Please, input all variables (use scroll if needed)")
+                                    }
+                                    literalsMap.clear()
+                                    for (element in checkerMap) {
+                                        val value = element.value.text
+                                        val key = element.key
+                                        try {
+                                            literalsMap[key] = value.toDouble()
+                                        } catch (exc: Exception) {
+                                            throw Exception("Unable to convert input string " +
+                                                    "'$value' to value for variable '$key'")
                                         }
                                     }
+                                    val computeVisitor = ComputeExpressionVisitor(literalsMap)
+                                    val result: Double = expr.accept(computeVisitor) as Double
+                                    resultText = result.toString()
                                 } catch (exc: Exception) {
                                     inputError = true
-                                    inputErrorText = exc.message + ". Please, input the expression again"
+                                    inputErrorText = exc.message.toString()
                                 }
                             }
                         ) {
@@ -396,17 +384,14 @@ fun app() {
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             for (element in literalsSet) {
-                                var tempText = if (checkerMap.containsKey(element)) checkerMap[element] ?: "" else ""
-                                println(tempText)
                                 item {
                                     TextField(
                                         modifier = Modifier.fillMaxWidth(fraction = 0.55f),
-                                        value = tempText,
-                                        onValueChange = { newText: String ->
-                                            //tempText = newText
-                                            checkerMap[element] = newText
+                                        value = checkerMap[element] ?: TextFieldValue(),
+                                        onValueChange = {
+                                            checkerMap[element] = it
                                         },
-                                        placeholder = { Text("$element = ") },
+                                        label = { Text("$element = ") },
                                         singleLine = true
                                     )
                                 }
