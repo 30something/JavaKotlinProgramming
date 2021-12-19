@@ -15,7 +15,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import com._30something.lib_calc.*
-import java.util.*
 
 @Composable
 @Preview
@@ -28,14 +27,39 @@ fun app() {
     var treeDepthText: String by remember { mutableStateOf("") }
     var reconstructedExprText: String by remember { mutableStateOf("") }
     var cursorPos: Int by remember { mutableStateOf(0) }
-    var literalsSet: HashSet<String> by remember { mutableStateOf(HashSet()) }
+    var literalsSet = mutableSetOf<String>()
     val literalsMap = mutableStateMapOf<String, Double>()
     val checkerMap = mutableStateMapOf<String, TextFieldValue>()
+
+    @Composable
+    fun createGUIButton(symbol: Char) {
+        Button(
+            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
+            onClick = {
+                expression += symbol
+                cursorPos = expression.length
+            }
+        ) {
+            Text(symbol.toString())
+        }
+    }
+
+    @Composable
+    fun createAdditionalResultFields(value: String, label: String) {
+        TextField(
+            modifier = Modifier.fillMaxWidth(fraction = 0.55f).padding(all = 2.dp),
+            value = value,
+            onValueChange = {},
+            label = { Text(label, fontSize = 10.sp) },
+            singleLine = true,
+            readOnly = true
+        )
+    }
 
     CompositionLocalProvider(
         LocalDensity provides Density(
             density = 1.5f,
-            fontScale = 1.5f,
+            fontScale = 1.5f
         )
     ) {
         MaterialTheme {
@@ -92,13 +116,14 @@ fun app() {
                         Column {
                             TextField(
                                 modifier = Modifier
-                                    .padding(all = 4.dp)
+                                    .padding(horizontal = 4.dp, vertical = 10.dp)
                                     .fillMaxWidth(fraction = 0.405f)
                                     .fillMaxHeight(0.2f),
                                 value = resultText,
                                 onValueChange = {},
                                 label = { Text("Result:", fontSize = 10.sp) },
-                                readOnly = true,
+                                singleLine = true,
+                                readOnly = true
                             )
                         }
                     }
@@ -107,24 +132,8 @@ fun app() {
                             .padding(all = 2.dp)
                             .weight(1f)
                     ) {
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "("
-                                cursorPos = expression.length
-                            },
-                        ) {
-                            Text("(")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += ")"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text(")")
-                        }
+                        createGUIButton('(')
+                        createGUIButton(')')
                         Button(
                             modifier = Modifier.wrapContentSize().padding(all = 2.dp),
                             onClick = {
@@ -174,6 +183,8 @@ fun app() {
                                     val computeVisitor = ComputeExpressionVisitor(literalsMap)
                                     val result: Double = expr.accept(computeVisitor) as Double
                                     resultText = result.toString()
+                                    inputError = false
+                                    inputErrorText = ""
                                 } catch (exc: Exception) {
                                     inputError = true
                                     inputErrorText = exc.message.toString()
@@ -188,126 +199,30 @@ fun app() {
                             .padding(all = 2.dp)
                             .weight(1f)
                     ) {
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "1"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("1")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "2"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("2")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "3"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("3")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "/"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("/")
-                        }
+                        createGUIButton('1')
+                        createGUIButton('2')
+                        createGUIButton('3')
+                        createGUIButton('/')
                     }
                     Row(
                         modifier = Modifier
                             .padding(all = 2.dp)
                             .weight(1f)
                     ) {
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "4"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("4")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "5"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("5")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "6"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("6")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "*"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("*")
-                        }
+                        createGUIButton('4')
+                        createGUIButton('5')
+                        createGUIButton('6')
+                        createGUIButton('*')
                     }
                     Row(
                         modifier = Modifier
                             .padding(all = 2.dp)
                             .weight(1f)
                     ) {
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "7"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("7")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "8"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("8")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "9"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("9")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "-"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("-")
-                        }
+                        createGUIButton('7')
+                        createGUIButton('8')
+                        createGUIButton('9')
+                        createGUIButton('-')
                     }
                     Row(
                         modifier = Modifier
@@ -322,63 +237,18 @@ fun app() {
                         ) {
                             Text("←")
                         }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "0"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("0")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "."
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text(".")
-                        }
-                        Button(
-                            modifier = Modifier.wrapContentSize().padding(all = 2.dp),
-                            onClick = {
-                                expression += "+"
-                                cursorPos = expression.length
-                            }
-                        ) {
-                            Text("+")
-                        }
+                        createGUIButton('0')
+                        createGUIButton('.')
+                        createGUIButton('+')
                     }
                 }
                 Box(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(25.dp, 10.dp),
                 ) {
                     Column {
-                        TextField(
-                            modifier = Modifier.fillMaxWidth(fraction = 0.55f).padding(all = 2.dp),
-                            value = treeText,
-                            onValueChange = {},
-                            label = { Text("Debug tree: ", fontSize = 10.sp) },
-                            singleLine = true,
-                            readOnly = true
-                        )
-                        TextField(
-                            modifier = Modifier.fillMaxWidth(fraction = 0.55f).padding(all = 2.dp),
-                            value = treeDepthText,
-                            onValueChange = {},
-                            label = { Text("Tree depth: ", fontSize = 10.sp) },
-                            singleLine = true,
-                            readOnly = true
-                        )
-                        TextField(
-                            modifier = Modifier.fillMaxWidth(fraction = 0.55f).padding(all = 2.dp),
-                            value = reconstructedExprText,
-                            onValueChange = {},
-                            label = { Text("Reconstructed expression: ", fontSize = 10.sp) },
-                            singleLine = true,
-                            readOnly = true
-                        )
+                        createAdditionalResultFields(treeText, "Debug tree: ")
+                        createAdditionalResultFields(treeDepthText, "Tree depth: ")
+                        createAdditionalResultFields(reconstructedExprText, "Reconstructed expression: ")
                         LazyColumn(
                             modifier = Modifier.fillMaxHeight(0.64f).padding(all = 2.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)

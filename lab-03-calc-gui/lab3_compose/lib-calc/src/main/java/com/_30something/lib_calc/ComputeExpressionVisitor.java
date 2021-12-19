@@ -16,20 +16,20 @@ public class ComputeExpressionVisitor implements ExpressionVisitor {
         Double leftRes = (Double) expr.getLeft().accept(this);
         Double rightRes = (Double) expr.getRight().accept(this);
         switch (operation) {
-            case ADD: {
+            case ADD -> {
                 return leftRes + rightRes;
             }
-            case SUBTRACT: {
+            case SUBTRACT -> {
                 return leftRes - rightRes;
             }
-            case MULTIPLY: {
+            case MULTIPLY -> {
                 return leftRes * rightRes;
             }
-            case DIVIDE: {
+            case DIVIDE -> {
                 if (rightRes == 0) throw new ArithmeticException("Division by zero found");
                 return leftRes / rightRes;
             }
-            case DEFAULT: {
+            case DEFAULT -> {
                 return 0;
             }
         }
